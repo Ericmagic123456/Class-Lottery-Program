@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6606大抽奖</title>
+    <style>
+        #excludeOptions, #includeOptions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #excludeOptions label, #includeOptions label {
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>  
+<body>
+    <h1>6606大抽奖</h1>
+    
+    <!-- 原功能：排除后抽奖 -->
+    <!--<h2>模式1：排除后抽奖</h2>-->
+    <p>选择要排除的学号：</p>
+    <div id="excludeOptions"></div>
+    <p>抽取人数：<input type="number" id="excludeCount" min="1"></p>
+    <button onclick="excludeDraw()">开始抽奖</button>
+    <p id="excludeResult"></p>
+    
+    <hr>
+    
+   
+    <!--<h2>模式2：从选中抽奖</h2>-->
+    <p>选择要包含的学号：</p>
+    <div id="includeOptions"></div>
+    <p>抽取人数：<input type="number" id="includeCount" min="1"></p>
+    <button onclick="includeDraw()">开始抽奖</button>
+    <p id="includeResult"></p>
+
+    <script>
+        // 生成两套1-60的复选框
+        function createCheckboxes(containerId) {
+            const container = document.getElementById(containerId);
+            for (let i = 1; i <= 62; i++) {
+                const div = document.createElement("div");
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.id = `${containerId}-${i}`;
+                checkbox.value = i;
+                
+                const label = document.createElement("label");
+                label.htmlFor = `${containerId}-${i}`;
+                label.textContent = i;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            }
+        }
+        
+        // 初始化两套复选框
+        createCheckboxes("excludeOptions");
+        createCheckboxes("includeOptions");
+        
+        // 模式1：排除后抽奖
+        function excludeDraw() {
+            const excluded = Array.from(
+                document.querySelectorAll("#excludeOptions input:checked")
+            ).map(el => parseInt(el.value));
+            
+            const count = parseInt(document.getElementById("excludeCount").value);
+            
+            // 生成可用数字(1-60排除已选)
+            const available = [];
+            for (let i = 1; i <= 62; i++) {
+                if (!excluded.includes(i)) available.push(i);
+            }
+            
+            drawNumbers(available, count, "excludeResult");
+        }
+        
+        // 模式2：从选中抽奖
+        function includeDraw() {
+            const included = Array.from(
+                document.querySelectorAll("#includeOptions input:checked")
+            ).map(el => parseInt(el.value));
+            
+            const count = parseInt(document.getElementById("includeCount").value);
+            
+            // 直接从选中的数字中抽取
+            drawNumbers(included, count, "includeResult");
+        }
+        
+        // 通用抽奖函数
+        function drawNumbers(pool, count, resultId) {
+            if (isNaN(count) || count <= 0) {
+                document.getElementById(resultId).textContent = "请输入有效人数";
+                return;
+            }
+            
+            if (pool.length === 0) {
+                document.getElementById(resultId).textContent = "没有可用的学号";
+                return;
+            }
+            
+            if (count > pool.length) {
+                document.getElementById(resultId).textContent = 
+                    `抽取人数不能超过可用学号数(当前${pool.length})`;
+                return;
+            }
+            
+            // 洗牌算法抽取
+            const shuffled = [...pool].sort(() => Math.random() - 0.5);
+            const result = shuffled.slice(0, count).sort((a, b) => a - b);
+            
+            document.getElementById(resultId).textContent = 
+                `抽中学号：${result.join(", ")}`;
+        }
+    </script>
+</body>
+</html>
+
